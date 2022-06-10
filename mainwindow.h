@@ -10,7 +10,18 @@
 #include <QTableView>
 #include <QFileSystemModel>
 
-class MainWindow : public QMainWindow
+#include <QtCharts/QChartView>
+#include <QtCharts/QPieSeries>
+#include <QtCharts/QPieSlice>
+#include <QPainter>
+#include <QPdfWriter>
+
+#include <QGridLayout>
+
+#include <QCheckBox>
+#include <QComboBox>
+//class MainWindow : public QWidget
+class MainWindow : public QWidget
 {
     Q_OBJECT
 
@@ -24,12 +35,30 @@ public:
 private:
     QString directory_name;//имя открытой директории
 
-     QSplitter *splitter; //разделитель
-    QVBoxLayout *vertical_layout;
+
+    //компановка
+    QSplitter *splitter_left; //разделитель
+    QSplitter *splitter_right;
+
+    QVBoxLayout *vertical_left_layout;
+    QVBoxLayout *vertical_right_layout;
     QHBoxLayout *horizontal_layout;
-    QPushButton *directory_button;
+    QHBoxLayout *horizontal_graph_settings_layout;
+    //виджеты
+    QPushButton *button_directory;
+    QPushButton *button_print_graph;
     QTableView *table_view;// таблица выбора файла (базы данных)
     QFileSystemModel *table_model;//файловая модель для таблицы выбора файла
+    QCheckBox *chbox_bw_chart;
+    QComboBox *combobox_chart_type;
+
+
+    //графики
+    QChartView *chart_view;
+    QChart *chart;
+    QPieSeries *series;
+    QPieSlice *hit_slice;
+    QPainter painter;
 
 };
 #endif // MAINWINDOW_H
