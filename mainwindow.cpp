@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <QMessageBox>
 //MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 MainWindow::MainWindow(QWidget *parent)
     : QWidget(parent)
@@ -36,13 +37,18 @@ MainWindow::MainWindow(QWidget *parent)
     table_view->setModel(table_model);//дружим представление с моделью
     table_view->hideColumn(1);//убираем лишний столбец
 
+
+
+
+
+
     /******************************************************** ГРАФИКИ ********************************************************/
 
-    button_print_graph = new QPushButton ("Print graph");
+    button_print_chart = new QPushButton ("Print graph");
     chbox_bw_chart = new QCheckBox("B/w graph");
     combobox_chart_type = new QComboBox();
 
-
+    /*
     chart_view = new QChartView;
     chart_view->setRenderHint(QPainter::Antialiasing);
 
@@ -64,39 +70,44 @@ MainWindow::MainWindow(QWidget *parent)
     QPieSlice *miss_slice = series->slices().at(1);
     miss_slice->setBrush(QColor(221, 68, 68)); // red
     chart->addSeries(series);
+        */
 
-    //chartView->show();
-    /*
-    //Печать графика с помощью QPdfWriter(класс для создания pdf файлов)
 
-    QPdfWriter writer("out.pdf");
+    /******************************************************** ТАБЛИЧНОЕ ПРЕДСТАВЛЕНИЕ БД (ТЕСТ) *********************************/
+    QTableView view (splitter_right);
+    QSqlTableModel model;
 
-    writer.setCreator("Someone");//Указываем создателя документа
+    model.setTable("my_table");
+    model.select();
+    model.setEditStrategy(QSqlTableModel::OnFieldChange);
 
-    writer.setPageSize(QPageSize::A4);//Устанавливаем размер страницы
-
-    QPainter painter(&writer);
-
-    chartView->render(&painter);
-    painter.end();
-    */
+    view.setModel(&model);
 
 
     /******************************************************** РАЗМЕЩЕНИЕ ********************************************************/
 
     splitter_left->addWidget(table_view);
     vertical_left_layout->addWidget(button_directory);
-    splitter_right->addWidget(chart_view);
-    horizontal_graph_settings_layout->addWidget(button_print_graph);
+    //splitter_right->addWidget(chart_view);
+    //splitter_right->addWidget(view);
+
+
+
+    horizontal_graph_settings_layout->addWidget(button_print_chart);
     horizontal_graph_settings_layout->addWidget(chbox_bw_chart);
     horizontal_graph_settings_layout->addWidget(combobox_chart_type);
     //QPushButton *but = new QPushButton();
     //splitter->addWidget(but);
 
     /******************************************************** СИГНАЛЫ-СЛОТЫ ********************************************************/
-    connect(button_directory, SIGNAL(clicked()), this, SLOT(open_directory_slot())); //сигнал-слот открытия директории
+    connect (button_directory, SIGNAL(clicked()), this, SLOT(open_directory_slot())); //открытие директории
+    connect (button_print_chart, SIGNAL(clicked()), this, SLOT(print_chart_slot())); //печать графика
+    connect (table_view->selectionModel(), SIGNAL(currentChanged ( const QModelIndex &, const QModelIndex & )), this, SLOT(file_chose_slot()));
 
 }
+
+
+
 
 void MainWindow::open_directory_slot()
 {
@@ -108,7 +119,38 @@ void MainWindow::open_directory_slot()
    table_view->setRootIndex(table_model->setRootPath(directory_name));
 }
 
+void MainWindow::print_chart_slot()
+{
+    //Печать графика с помощью QPdfWriter(класс для создания pdf файлов)
 
+    //todo: разобраться, исправить если нужно.
+
+    QPdfWriter writer("out.pdf");
+
+    writer.setCreator("Someone");//Указываем создателя документа
+    writer.setPageSize(QPageSize::A4);//Устанавливаем размер страницы
+
+
+    QPainter painter(&writer);
+
+    chart_view->render(&painter);
+    painter.end();
+}
+
+
+void MainWindow::file_chose_slot()
+{
+    //связываемся с датабазой:
+     dbase = QSqlDatabase::addDatabase("QSQLITE");
+        dbase.setDatabaseName(table_view->selectionModel()->objectName());
+
+        if (!dbase.open()) {
+            QMessageBox msg;
+                 msg.setText("Cant open database");
+                 msg.exec();
+        }
+
+}
 
 MainWindow::~MainWindow()
 {
