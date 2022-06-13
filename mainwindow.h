@@ -24,7 +24,10 @@
 
 #include <QPdfWriter>
 
-#include <QtSql> //для теста
+#include <QtSql>
+
+#include <QItemSelectionModel>
+
 
 //class MainWindow : public QWidget
 class MainWindow : public QWidget
@@ -34,7 +37,7 @@ class MainWindow : public QWidget
 private slots:
     void open_directory_slot(); //слот открытия диалоговоого окна с папками
     void print_chart_slot();
-    void file_chose_slot();
+    void file_chose_slot(const QItemSelection &, const QItemSelection &);
 
 public:
     MainWindow(QWidget *parent = nullptr);
@@ -69,6 +72,11 @@ private:
 
     //база
     QSqlDatabase dbase;
+
+    //тестовые мусорные данные
+    QString filePath;
+    QTableView *view;
+    QSqlTableModel *model;
 
 };
 #endif // MAINWINDOW_H

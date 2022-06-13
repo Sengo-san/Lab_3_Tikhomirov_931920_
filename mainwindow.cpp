@@ -2,7 +2,8 @@
 #include "ui_mainwindow.h"
 
 #include <QMessageBox>
-//MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
+
+
 MainWindow::MainWindow(QWidget *parent)
     : QWidget(parent)
 {
@@ -38,9 +39,7 @@ MainWindow::MainWindow(QWidget *parent)
     table_view->hideColumn(1);//убираем лишний столбец
 
 
-
-
-
+    QItemSelectionModel *selectionModel = table_view->selectionModel();
 
     /******************************************************** ГРАФИКИ ********************************************************/
 
@@ -74,14 +73,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     /******************************************************** ТАБЛИЧНОЕ ПРЕДСТАВЛЕНИЕ БД (ТЕСТ) *********************************/
-    QTableView view (splitter_right);
-    QSqlTableModel model;
-
-    model.setTable("my_table");
-    model.select();
-    model.setEditStrategy(QSqlTableModel::OnFieldChange);
-
-    view.setModel(&model);
+    view = new QTableView;
 
 
     /******************************************************** РАЗМЕЩЕНИЕ ********************************************************/
@@ -102,7 +94,8 @@ MainWindow::MainWindow(QWidget *parent)
     /******************************************************** СИГНАЛЫ-СЛОТЫ ********************************************************/
     connect (button_directory, SIGNAL(clicked()), this, SLOT(open_directory_slot())); //открытие директории
     connect (button_print_chart, SIGNAL(clicked()), this, SLOT(print_chart_slot())); //печать графика
-    connect (table_view->selectionModel(), SIGNAL(currentChanged ( const QModelIndex &, const QModelIndex & )), this, SLOT(file_chose_slot()));
+    connect(selectionModel, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)), this, SLOT(file_chose_slot(const QItemSelection &, const QItemSelection &)));
+    //connect (table_view->selectionModel(), SIGNAL(currentChanged ( const QModelIndex &, const QModelIndex & )), this, SLOT(file_chose_slot())); //выбор файла
 
 }
 
@@ -138,18 +131,46 @@ void MainWindow::print_chart_slot()
 }
 
 
-void MainWindow::file_chose_slot()
+void MainWindow::file_chose_slot(const QItemSelection &selected, const QItemSelection &deselected)
 {
-    //связываемся с датабазой:
-     dbase = QSqlDatabase::addDatabase("QSQLITE");
-        dbase.setDatabaseName(table_view->selectionModel()->objectName());
+    Q_UNUSED(deselected);
 
-        if (!dbase.open()) {
+    //получаем путь:
+    QModelIndexList indexs =  selected.indexes();
+    filePath = "";
+    if (indexs.count() >= 1) {
+        QModelIndex ix =  indexs.constFirst();
+        filePath = table_model->filePath(ix);
+    }
+
+    //связываемся с датабазой:
+
+    dbase = QSqlDatabase::addDatabase("QSQLITE"); //соединение по умолчанию (неименованое)
+    dbase.setDatabaseName(filePath);
+
+    if (!dbase.open()) {//открываем, проверяем на открытие
+        QMessageBox msg;
+        msg.setText("Cant open database " + filePath);
+        msg.exec();
+    }
+
+    else {
+        model = new QSqlTableModel;
+        model->database() = dbase;
+        model->setTable(dbase.tables().takeFirst()); //устанавливаем первую таблицу
+        model->setEditStrategy(QSqlTableModel::OnFieldChange);
+
+        if (!model->select()){
             QMessageBox msg;
-                 msg.setText("Cant open database");
-                 msg.exec();
+            msg.setText("Cant read table " + model->tableName() + ", database: " + model->database().databaseName());
+            msg.exec();
         }
 
+    }
+
+     //загружаем данные в модель
+    view->setModel(model);
+    splitter_right->addWidget(view);
 }
 
 MainWindow::~MainWindow()
