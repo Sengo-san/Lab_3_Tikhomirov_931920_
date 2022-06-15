@@ -12,7 +12,7 @@ void MyPieChart::createChart(QVector <DataElement> data)
     int i = 0;
     int others_count = 0;
     foreach (DataElement x, data) {
-        if (i < first_n_printed){ //массив заранее отсортирован
+        if (i < first_n_printed){ //массив заранее отсортирован, поэтому работаем с первыми по порядку
             series->append(QString::number(x.head), x.val);
             series->slices().at(i)->setBrush(QColor(rand()%250,  rand()%250, rand()%250));
         }
@@ -20,8 +20,11 @@ void MyPieChart::createChart(QVector <DataElement> data)
             others_count += x.val;
        i++;
     }
-    series->append("Others", others_count);
+
+    if (i > first_n_printed)
+    {series->append("Others", others_count);
     series->slices().at(first_n_printed)->setBrush(QColor(0,0,0));
+    }
 
     chart->addSeries(series);
 }

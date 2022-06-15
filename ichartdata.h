@@ -4,6 +4,11 @@
 #include <QtSql>
 #include <QString>
 
+#include <QFile>
+#include <QJsonObject>
+#include <QJsonDocument>
+#include <QJsonArray>
+
 struct DataElement //пара заголовок-значение
 {
 public:

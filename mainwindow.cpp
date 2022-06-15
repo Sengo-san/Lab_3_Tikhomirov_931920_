@@ -117,12 +117,22 @@ void MainWindow::file_chose_slot(const QItemSelection &selected, const QItemSele
         filePath = table_model->filePath(ix);
     }
 
-
-   //if (конец файла = .sqlite)
-
-    gContainer.RegisterInstance<IChartData, ChartDataSqlite>();
-    //pie_chart = new MyPieChart();
-    chart->createChart(gContainer.GetObject<IChartData>()->getData(filePath));
+    if (filePath.contains(".sqlite"))//todo: костыль, позже переделать
+    {
+        gContainer.RegisterInstance<IChartData, ChartDataSqlite>();
+        //pie_chart = new MyPieChart();
+        chart->createChart(gContainer.GetObject<IChartData>()->getData(filePath));
+    }
+    else if (filePath.contains(".json")) {
+        gContainer.RegisterInstance<IChartData, ChartDataJson>();
+        //pie_chart = new MyPieChart();
+        chart->createChart(gContainer.GetObject<IChartData>()->getData(filePath));
+    }
+    else {
+        QMessageBox msg;
+        msg.setText("Unknown file type");
+        msg.exec();
+    }
 
     //chart_view = chart->getChartView();
 }

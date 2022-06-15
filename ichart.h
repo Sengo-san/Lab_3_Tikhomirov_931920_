@@ -6,6 +6,7 @@
 #include <QtCharts/QPieSlice>
 #include "ichartdata.h"
 #include <QAbstractBarSeries>
+#include <QJsonDocument>
 
 class IChart //интерфейс графика
 {

@@ -54,12 +54,31 @@ QVector <DataElement> ChartDataSqlite::getData (QString path_)
 
 QVector <DataElement> ChartDataJson::getData(QString path_)
 {
-    //QVector <int> data = new QVector <int>;
-      QVector <DataElement> data;
-    //получение списка из json-файла, пока что просто случайные числа
-    data.push_back(DataElement(2,5));
-    data.push_back(DataElement(3,1));
-    data.push_back(DataElement(4,2));
+    QVector <DataElement> data;
+
+    QString val;
+    QFile file;
+    file.setFileName(path_);
+    file.open(QIODevice::ReadOnly | QIODevice::Text);
+    val = file.readAll();
+    file.close();
+    QJsonDocument doc = QJsonDocument::fromJson(val.toUtf8());
+    QJsonObject jsonObject = doc.object();
+
+    foreach (QJsonValueRef x, jsonObject){
+        int header = floor(x.toDouble()); //округленное вниз
+        int index_of_header = data.indexOf(DataElement(header, -2));// ищем значение в списке заголвков (-2 проигнорируется перегруженным опреатором сравнения)
+
+        if (index_of_header == -1) {//если еще нет такого заголовка (значение не попало в уже известный интервал)
+            data.push_back(DataElement(header, 1));//заводим новый счетчик
+        }
+        else{//если счетчик уже есть, увеличиваем
+            data[index_of_header].val ++;
+        }
+    }
+
+
+    std::sort (data.begin(), data.end());
 
     return data;
 }
