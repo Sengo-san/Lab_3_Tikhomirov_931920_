@@ -2,13 +2,13 @@
 #include "ui_mainwindow.h"
 
 #include <QMessageBox>
-
+#include "IOCcontainer.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QWidget(parent)
 {
     setWindowTitle("Lab_3_Tikhomirov"); // заголовок окна
-    setGeometry(0,0,800,600);
+    setGeometry(0, 0, 800, 600);
 
    /******************************************************** КОМПАНОВКА ********************************************************/
 
@@ -47,55 +47,28 @@ MainWindow::MainWindow(QWidget *parent)
     chbox_bw_chart = new QCheckBox("B/w graph");
     combobox_chart_type = new QComboBox();
 
-    /*
-    chart_view = new QChartView;
-    chart_view->setRenderHint(QPainter::Antialiasing);
 
-    chart = chart_view->chart();
-    chart->setTitle("Beautiful Pie Chart");
-    chart->legend()->hide();
+    this->chart = new MyPieChart(); //подобная строка будет в слоте от окна выбора типа графика и реализована с помощью IOC-контейнера
+    //this->chart_view = new QChartView;
 
-    series = new QPieSeries();
-
-    //ввод данных графика
-    float hits = 49.0f, misses = 51.0f;
-    series->append("Hits", hits);
-    series->append("Misses", misses);
-
-    //настройка графика
-    QPieSlice *hit_slice = series->slices().at(0);
-    hit_slice->setBrush(QColor(87, 147, 243));  // blue
-
-    QPieSlice *miss_slice = series->slices().at(1);
-    miss_slice->setBrush(QColor(221, 68, 68)); // red
-    chart->addSeries(series);
-        */
-
-
-    /******************************************************** ТАБЛИЧНОЕ ПРЕДСТАВЛЕНИЕ БД (ТЕСТ) *********************************/
-    view = new QTableView;
-
+    //остальное реализуется в слоте выбора файла
 
     /******************************************************** РАЗМЕЩЕНИЕ ********************************************************/
 
-    splitter_left->addWidget(table_view);
-    vertical_left_layout->addWidget(button_directory);
-    //splitter_right->addWidget(chart_view);
-    //splitter_right->addWidget(view);
 
+    splitter_left->addWidget(table_view);//представление файлов в папке
+    vertical_left_layout->addWidget(button_directory);//кнопка выбора папки
 
+    splitter_right->addWidget(chart->getChartView());//график
 
-    horizontal_graph_settings_layout->addWidget(button_print_chart);
-    horizontal_graph_settings_layout->addWidget(chbox_bw_chart);
-    horizontal_graph_settings_layout->addWidget(combobox_chart_type);
-    //QPushButton *but = new QPushButton();
-    //splitter->addWidget(but);
+    horizontal_graph_settings_layout->addWidget(button_print_chart); //кнопка печати
+    horizontal_graph_settings_layout->addWidget(chbox_bw_chart); //галочка ч-б графика
+    horizontal_graph_settings_layout->addWidget(combobox_chart_type);//выбор типа графика
 
     /******************************************************** СИГНАЛЫ-СЛОТЫ ********************************************************/
     connect (button_directory, SIGNAL(clicked()), this, SLOT(open_directory_slot())); //открытие директории
     connect (button_print_chart, SIGNAL(clicked()), this, SLOT(print_chart_slot())); //печать графика
     connect(selectionModel, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)), this, SLOT(file_chose_slot(const QItemSelection &, const QItemSelection &)));
-    //connect (table_view->selectionModel(), SIGNAL(currentChanged ( const QModelIndex &, const QModelIndex & )), this, SLOT(file_chose_slot())); //выбор файла
 
 }
 
@@ -126,7 +99,7 @@ void MainWindow::print_chart_slot()
 
     QPainter painter(&writer);
 
-    chart_view->render(&painter);
+    //chart_view->render(&painter);
     painter.end();
 }
 
@@ -134,6 +107,7 @@ void MainWindow::print_chart_slot()
 void MainWindow::file_chose_slot(const QItemSelection &selected, const QItemSelection &deselected)
 {
     Q_UNUSED(deselected);
+
 
     //получаем путь:
     QModelIndexList indexs =  selected.indexes();
@@ -143,34 +117,14 @@ void MainWindow::file_chose_slot(const QItemSelection &selected, const QItemSele
         filePath = table_model->filePath(ix);
     }
 
-    //связываемся с датабазой:
 
-    dbase = QSqlDatabase::addDatabase("QSQLITE"); //соединение по умолчанию (неименованое)
-    dbase.setDatabaseName(filePath);
+   //if (конец файла = .sqlite)
 
-    if (!dbase.open()) {//открываем, проверяем на открытие
-        QMessageBox msg;
-        msg.setText("Cant open database " + filePath);
-        msg.exec();
-    }
+    gContainer.RegisterInstance<IChartData, ChartDataSqlite>();
+    //pie_chart = new MyPieChart();
+    chart->createChart(gContainer.GetObject<IChartData>()->getData(filePath));
 
-    else {
-        model = new QSqlTableModel;
-        model->database() = dbase;
-        model->setTable(dbase.tables().takeFirst()); //устанавливаем первую таблицу
-        model->setEditStrategy(QSqlTableModel::OnFieldChange);
-
-        if (!model->select()){
-            QMessageBox msg;
-            msg.setText("Cant read table " + model->tableName() + ", database: " + model->database().databaseName());
-            msg.exec();
-        }
-
-    }
-
-     //загружаем данные в модель
-    view->setModel(model);
-    splitter_right->addWidget(view);
+    //chart_view = chart->getChartView();
 }
 
 MainWindow::~MainWindow()

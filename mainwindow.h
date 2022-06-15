@@ -1,6 +1,9 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "ichart.h"
+#include "ichartdata.h"
+
 #include <QMainWindow>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -10,9 +13,6 @@
 #include <QTableView>
 #include <QFileSystemModel>
 
-#include <QtCharts/QChartView>
-#include <QtCharts/QPieSeries>
-#include <QtCharts/QPieSlice>
 #include <QPainter>
 #include <QPdfWriter>
 
@@ -24,7 +24,6 @@
 
 #include <QPdfWriter>
 
-#include <QtSql>
 
 #include <QItemSelectionModel>
 
@@ -65,18 +64,9 @@ private:
 
     //графики
     QChartView *chart_view;
-    QChart *chart;
-    QPieSeries *series;
-    QPieSlice *hit_slice;
-    QPainter painter;
-
-    //база
-    QSqlDatabase dbase;
-
-    //тестовые мусорные данные
+    IChart *chart;
+    MyPieChart *pie_chart;
+    //путь к файлу
     QString filePath;
-    QTableView *view;
-    QSqlTableModel *model;
-
 };
 #endif // MAINWINDOW_H
