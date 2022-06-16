@@ -1,30 +1,64 @@
 #include "ichart.h"
 
-void MyPieChart::createChart(QVector <DataElement> data)
+void MyPieChart::createChart(QVector <DataElement> data, int visible_amount)
 {
-    QChart *chart = chartView->chart();
+    //QChart *chart = chartView->chart();
     chart->setTitle("Pie Chart");
-    //chart->legend()->hide();
 
-    QPieSeries *series = new QPieSeries ();// = new QPieSeries();
+    QPieSeries *series = new QPieSeries ();
 
-    int first_n_printed = 5; //сколько первых по величине значений выведем (остальное просуммируем в "others")
     int i = 0;
     int others_count = 0;
-    foreach (DataElement x, data) {
-        if (i < first_n_printed){ //массив заранее отсортирован, поэтому работаем с первыми по порядку
-            series->append(QString::number(x.head), x.val);
+    foreach (DataElement elem, data) {
+        if (i < visible_amount){ //массив заранее отсортирован, поэтому работаем с первыми по порядку
+            QString legend_header ("(" + QString::number(elem.head) + "," + QString::number(elem.head + 1) + ")");
+            series->append(legend_header, elem.val);
             series->slices().at(i)->setBrush(QColor(rand()%250,  rand()%250, rand()%250));
         }
         else
-            others_count += x.val;
+            others_count += elem.val;
        i++;
     }
 
-    if (i > first_n_printed)
+    if (i > visible_amount)
     {series->append("Others", others_count);
-    series->slices().at(first_n_printed)->setBrush(QColor(0,0,0));
+    series->slices().at(visible_amount)->setBrush(QColor(0,0,0));
     }
 
+    chart->removeAllSeries();
+    chart->addSeries(series);
+}
+
+
+void MyBarChart::createChart(QVector<DataElement> data, int visible_amount)
+{
+   // QChart *chart = chartView->chart();
+    chart->setTitle("Bar chart");
+
+    QBarSeries *series = new QBarSeries();
+
+    int i = 0;
+    int others_count = 0;
+    foreach (DataElement elem, data) {
+        if (i < visible_amount){//массив заранее отсортирован, поэтому работаем с первыми по порядку
+            QString legend_header ("(" + QString::number(elem.head) + "," + QString::number(elem.head + 1) + ")");
+            QBarSet *set = new QBarSet(legend_header);
+            *set << elem.val;
+            set->setBrush(QColor(rand()%250,  rand()%250, rand()%250));
+            series->append(set);
+        }
+        else
+            others_count += elem.val;
+       i++;
+    }
+
+    if (i > visible_amount)
+    {   QBarSet *set = new QBarSet("Others");
+        *set << others_count;
+        set->setBrush(QColor(0,0,0));
+        series->append(set);
+    }
+
+    chart->removeAllSeries();
     chart->addSeries(series);
 }

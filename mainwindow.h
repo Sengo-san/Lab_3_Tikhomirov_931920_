@@ -35,38 +35,38 @@ class MainWindow : public QWidget
 
 private slots:
     void open_directory_slot(); //слот открытия диалоговоого окна с папками
-    void print_chart_slot();
-    void file_chose_slot(const QItemSelection &, const QItemSelection &);
+    void print_chart_slot();//слот печати
+    void file_chose_slot(const QItemSelection &, const QItemSelection &);//слот выбора файа
+    void chart_type_change_slot ();//слот смены типа графика
 
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
 private:
-    QString directory_name;//имя открытой директории
+    void chart_repaint();//перерисовка графика
 
+    QString directory_name;//имя открытой директории
+    QString filePath; //путь к файлу
 
     //компановка
-    QSplitter *splitter_left; //разделитель
+    QSplitter *splitter_left;
     QSplitter *splitter_right;
-
     QVBoxLayout *vertical_left_layout;
     QVBoxLayout *vertical_right_layout;
     QHBoxLayout *horizontal_layout;
     QHBoxLayout *horizontal_graph_settings_layout;
+
     //виджеты
-    QPushButton *button_directory;
-    QPushButton *button_print_chart;
-    QTableView *table_view;// таблица выбора файла (базы данных)
-    QFileSystemModel *table_model;//файловая модель для таблицы выбора файла
-    QCheckBox *chbox_bw_chart;
-    QComboBox *combobox_chart_type;
+    QPushButton *button_directory;//кнопка открытия директории
+    QPushButton *button_print_chart;//кнопка печати
+    QTableView *table_view; //таблица выбора файла
+    QFileSystemModel *table_model;  //файловая модель для таблицы выбора файла
+    QCheckBox *chbox_bw_chart; //чекбокс ч/б график
+    QComboBox *combobox_chart_type; //типы графика
 
     //графики
     QChartView *chart_view;
     IChart *chart;
-    MyPieChart *pie_chart;
-    //путь к файлу
-    QString filePath;
 };
 #endif // MAINWINDOW_H
