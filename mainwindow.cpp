@@ -9,7 +9,18 @@ MainWindow::MainWindow(QWidget *parent)
 {
     setWindowTitle("Lab_3_Tikhomirov"); // заголовок окна
     setGeometry(0, 0, 1200, 600);
+    int visuable_parts_amount = 7; //количество "видимых частей" графика (остальные суммируются в "Others")
 
+    for (int i = 0; i <= visuable_parts_amount + 1; i++){
+        int r = rand()%250;
+        int g = rand()%250;
+        int b = rand()%250;
+        int bw = (r+g+b)/3;
+        colored_colors.push_back(QColor(r,g,b));
+        black_white_colors.push_back(QColor(bw, bw, bw));
+    }
+
+    chart_is_open = 0;
    /******************************************************** КОМПАНОВКА ********************************************************/
 
     horizontal_layout=new QHBoxLayout(this);
@@ -51,6 +62,7 @@ MainWindow::MainWindow(QWidget *parent)
     combobox_chart_type->insertItem(2, QString("Bar chart"));
 
 
+
     filePath = "";
     chart_view = new QChartView;
     chart_view->setRenderHint(QPainter::Antialiasing);
@@ -73,7 +85,18 @@ MainWindow::MainWindow(QWidget *parent)
     connect (button_print_chart, SIGNAL(clicked()), this, SLOT(print_chart_slot())); //печать графика
     connect (selectionModel, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)), this, SLOT(file_chose_slot(const QItemSelection &, const QItemSelection &)));
     connect (combobox_chart_type, SIGNAL (currentIndexChanged(int)), this,  SLOT(chart_type_change_slot()));//изменение типа графика
+    connect (chbox_bw_chart, SIGNAL(toggled(bool)), this, SLOT(recoloring_chart_slot()));
 
+}
+
+void MainWindow::recoloring_chart_slot()
+{
+    if (chart_is_open){
+        if (chbox_bw_chart->checkState())
+            chart->recolor_chart(black_white_colors);
+        else
+            chart->recolor_chart(colored_colors);
+    }
 
 
 }
@@ -81,30 +104,39 @@ MainWindow::MainWindow(QWidget *parent)
 void MainWindow::chart_repaint()
 {
     chart = gContainer.GetObject<IChart>().get(); //получаем график нужного типа
-    chart->createChart(gContainer.GetObject<IChartData>()->getData(filePath), 7); //заполняем график считанными данными с помощью нужного читателя
+
+    //заполняем график считанными данными с помощью нужного читателя нужными цветами
+    if (chbox_bw_chart->checkState())
+        chart->createChart(gContainer.GetObject<IChartData>()->getData(filePath), 7, black_white_colors);
+    else
+        chart->createChart(gContainer.GetObject<IChartData>()->getData(filePath), 7, colored_colors);
+
     chart_view->setChart(chart->getChart());//меняем отображаемый график на новый
+
+    chart_is_open = 1;
 }
 
 void MainWindow::chart_type_change_slot()
 {
     QString chart_type (combobox_chart_type->currentText());
-    bool found_chart_type = 0;
+    bool chart_type_right = 0;
     //Сверяем тип графика, связываем нужный интерфейс с реализацией
      if (chart_type == "Pie chart"){
          gContainer.RegisterInstance<IChart, MyPieChart>();
-         found_chart_type = 1;
+         chart_type_right = 1;
      }
      else if (chart_type == "Bar chart"){
          gContainer.RegisterInstance<IChart, MyBarChart>();
-         found_chart_type = 1;
+         chart_type_right = 1;
      }
      else {
          QMessageBox uct;
          uct.setText("Unknown chart type: " + chart_type);
          uct.exec();
+         chart_is_open = 0;
       }
 
-      if (found_chart_type && !filePath.isEmpty()) //если все вводные в порядке, перерисовываем график
+      if (chart_type_right && !filePath.isEmpty() && chart_is_open) //если все вводные в порядке, перерисовываем график
           chart_repaint();
 }
 
@@ -138,13 +170,19 @@ void MainWindow::print_chart_slot()
 void MainWindow::file_chose_slot(const QItemSelection &selected, const QItemSelection &deselected)
 {
     Q_UNUSED(deselected);
+    bool file_format_right = 0;
+    bool chart_type_right = 0;
 
     //проверяем тип:
     QString chart_type (combobox_chart_type->currentText());
-     if (chart_type == "Pie chart")
+     if (chart_type == "Pie chart"){
          gContainer.RegisterInstance<IChart, MyPieChart>();
-     else if (chart_type == "Bar chart")
+         chart_type_right = 1;
+     }
+     else if (chart_type == "Bar chart"){
          gContainer.RegisterInstance<IChart, MyBarChart>();
+         chart_type_right = 1;
+     }
      else {
          QMessageBox uct;
          uct.setText("Unknown chart type: " + chart_type);
@@ -159,17 +197,24 @@ void MainWindow::file_chose_slot(const QItemSelection &selected, const QItemSele
     }
 
     //связываем интерфейс получения данных с конкретным читателем:
-    if (filePath.endsWith(".sqlite"))
+    if (filePath.endsWith(".sqlite")){
         gContainer.RegisterInstance<IChartData, ChartDataSqlite>();
-    else if (filePath.endsWith(".json"))
+        file_format_right = 1;
+    }
+
+    else if (filePath.endsWith(".json")){
         gContainer.RegisterInstance<IChartData, ChartDataJson>();
+        file_format_right = 1;
+    }
     else {
         QMessageBox uft;
         uft.setText("Unknown file type");
         uft.exec();
+        chart_is_open = 0;
     }
 
-   chart_repaint();//перерисовывем график
+    if (file_format_right && chart_type_right)
+        chart_repaint();//перерисовывем график
 }
 
 MainWindow::~MainWindow()

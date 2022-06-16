@@ -38,7 +38,7 @@ private slots:
     void print_chart_slot();//слот печати
     void file_chose_slot(const QItemSelection &, const QItemSelection &);//слот выбора файа
     void chart_type_change_slot ();//слот смены типа графика
-
+    void recoloring_chart_slot();
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
@@ -65,8 +65,12 @@ private:
     QCheckBox *chbox_bw_chart; //чекбокс ч/б график
     QComboBox *combobox_chart_type; //типы графика
 
-    //графики
+    //графики  
     QChartView *chart_view;
     IChart *chart;
+    bool chart_is_open; //флаг открытого гафика, применяется в функциях, работающих только при открытом графике
+    //цвета берем из заренее сгенерированных списков:
+    QList <QColor> colored_colors;
+    QList <QColor> black_white_colors;
 };
 #endif // MAINWINDOW_H
