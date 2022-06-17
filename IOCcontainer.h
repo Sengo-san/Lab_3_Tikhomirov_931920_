@@ -25,7 +25,6 @@ using namespace std;
 class IOCContainer
 
 {
-
     static int s_typeId;
 public:
     //one typeid per type
@@ -152,7 +151,6 @@ public:
 IOCContainer gContainer;
 
 //Иницализация не нулевым значением
-
 
 int IOCContainer::s_typeId = 121;
 

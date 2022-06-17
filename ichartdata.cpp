@@ -1,23 +1,15 @@
 #include "ichartdata.h"
 #include <QMessageBox>
 
-
-bool operator== (const DataElement x, const DataElement y)//для поиска по заголовку
+bool operator== (const DataElement x, const DataElement y) //для поиска по заголовку
 {
     if (x.head == y.head) return 1;
     else return 0;
 }
-
 bool operator!= (const DataElement x, const DataElement y)
 {
-    if (x.head != y.head) return 1;
-    else return 0;
-}
-
-bool operator< (const DataElement x, const DataElement y) //для сортировки вектора
-{
-    if (x.val > y.val) return 1;
-    else return 0;
+    if (x == y) return 0;
+    else return 1;
 }
 
 QVector <DataElement> ChartDataSqlite::getData (QString path_)
@@ -37,18 +29,17 @@ QVector <DataElement> ChartDataSqlite::getData (QString path_)
         QSqlQuery query("SELECT * FROM " + dbase.tables().takeFirst()); //запрос на первую таблицу базы
             while (query.next()) {
                 int header = floor(query.value(1).toDouble()); //округленное вниз
-                int index_of_header = data.indexOf(DataElement(header, -2));// ищем значение в списке заголвков (-2 проигнорируется перегруженным опреатором сравнения)
+                int index_of_header = data.indexOf(DataElement(header, -2));// ищем значение в списке заголвков (-2 проигнорируется перегруженным опреатором)
 
-                if (index_of_header == -1) {//если еще нет такого заголовка (значение не попало в уже известный интервал)
-                    data.push_back(DataElement(header, 1));//заводим новый счетчик
+                if (index_of_header == -1) {//если значение не попало в известный интервал
+                    data.push_back(DataElement(header, 1));//заводим новый
                 }
-                else{//если счетчик уже есть, увеличиваем
+                else{//если интервал уже есть, увеличиваем счетчик
                     data[index_of_header].val ++;
                 }
             }
     }
 
-   std::sort (data.begin(), data.end());
    return data;
 }
 
@@ -78,7 +69,7 @@ QVector <DataElement> ChartDataJson::getData(QString path_)
     }
 
 
-    std::sort (data.begin(), data.end());
+
 
     return data;
 }

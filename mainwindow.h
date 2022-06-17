@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include "ichart.h"
-#include "ichartdata.h"
+
 
 #include <QMainWindow>
 #include <QVBoxLayout>
@@ -12,23 +12,14 @@
 #include <QSplitter>
 #include <QTableView>
 #include <QFileSystemModel>
-
 #include <QPainter>
-#include <QPdfWriter>
-
-#include <QGridLayout>
-
 #include <QCheckBox>
 #include <QComboBox>
-
-
 #include <QPdfWriter>
-
-
 #include <QItemSelectionModel>
+#include <QMessageBox>
 
 
-//class MainWindow : public QWidget
 class MainWindow : public QWidget
 {
     Q_OBJECT
@@ -73,4 +64,5 @@ private:
     QList <QColor> colored_colors;
     QList <QColor> black_white_colors;
 };
+
 #endif // MAINWINDOW_H

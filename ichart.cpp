@@ -1,23 +1,42 @@
 #include "ichart.h"
 
+int index_of_max (QVector <DataElement> data, int start = 0)
+{
+    int max = data.at(start).val;
+    int index = start, i = 0;
+    foreach (DataElement x, data){
+        if (i >= start) {
+            if (x.val > max){
+                max = x.val;
+                index = i;
+            }
+        }
+        i++;
+    }
+    return index;
+}
+
 void MyPieChart::createChart(QVector <DataElement> data, int visible_amount, QList <QColor> colors)
 {
-    //QChart *chart = chartView->chart();
-    chart->setTitle("Pie Chart");
+    chart->setTitle(title);
 
     series = new QPieSeries ();
+
+    //поместим в начало списка наибольшие элементы (для малых data.count() фактически сортируем)
+    for (int z = 0; z < visible_amount && z < data.count(); z ++)
+        data.push_front(data.takeAt(index_of_max(data, z)));
 
     int i = 0;
     int others_count = 0;
     foreach (DataElement elem, data) {
-        if (i < visible_amount){ //массив заранее отсортирован, поэтому работаем с первыми по порядку
+        if (i < visible_amount){ //работаем с первыми по порядку (наибольшими)
             QString legend_header ("(" + QString::number(elem.head) + "," + QString::number(elem.head + 1) + ")");
             series->append(legend_header, elem.val);
             series->slices().at(i)->setBrush(colors.at(i));
         }
         else
             others_count += elem.val;
-       i++;
+        i++;
     }
 
     if (i > visible_amount) {
@@ -29,18 +48,20 @@ void MyPieChart::createChart(QVector <DataElement> data, int visible_amount, QLi
     chart->addSeries(series);
 }
 
-
 void MyBarChart::createChart(QVector<DataElement> data, int visible_amount, QList <QColor> colors)
 {
-   // QChart *chart = chartView->chart();
-    chart->setTitle("Bar chart");
+    chart->setTitle(title);
 
     series = new QBarSeries();
+
+    //поместим в начало списка наибольшие элементы (для малых data.count() фактически сортируем)
+    for (int z = 0; z < visible_amount && z < data.count(); z ++)
+        data.push_front(data.takeAt(index_of_max(data, z)));
 
     int i = 0;
     int others_count = 0;
     foreach (DataElement elem, data) {
-        if (i < visible_amount){//массив заранее отсортирован, поэтому работаем с первыми по порядку
+        if (i < visible_amount){//работаем с первыми по порядку (наибольшими)
             QString legend_header ("(" + QString::number(elem.head) + "," + QString::number(elem.head + 1) + ")");
             QBarSet *set = new QBarSet(legend_header);
             *set << elem.val;
@@ -62,7 +83,6 @@ void MyBarChart::createChart(QVector<DataElement> data, int visible_amount, QLis
     chart->removeAllSeries();
     chart->addSeries(series);
 }
-
 
 void MyPieChart::recolor_chart(QList <QColor> colors)
 {

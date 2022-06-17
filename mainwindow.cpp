@@ -1,11 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
-#include <QMessageBox>
 #include "IOCcontainer.h"
 
-MainWindow::MainWindow(QWidget *parent)
-    : QWidget(parent)
+MainWindow::MainWindow(QWidget *parent) : QWidget(parent)
 {
     setWindowTitle("Lab_3_Tikhomirov"); // заголовок окна
     setGeometry(0, 0, 1200, 600);
@@ -85,7 +82,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect (button_print_chart, SIGNAL(clicked()), this, SLOT(print_chart_slot())); //печать графика
     connect (selectionModel, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)), this, SLOT(file_chose_slot(const QItemSelection &, const QItemSelection &)));
     connect (combobox_chart_type, SIGNAL (currentIndexChanged(int)), this,  SLOT(chart_type_change_slot()));//изменение типа графика
-    connect (chbox_bw_chart, SIGNAL(toggled(bool)), this, SLOT(recoloring_chart_slot()));
+    connect (chbox_bw_chart, SIGNAL(toggled(bool)), this, SLOT(recoloring_chart_slot()));//изменение цвета графика
 
 }
 
@@ -97,15 +94,13 @@ void MainWindow::recoloring_chart_slot()
         else
             chart->recolor_chart(colored_colors);
     }
-
-
 }
 
 void MainWindow::chart_repaint()
 {
     chart = gContainer.GetObject<IChart>().get(); //получаем график нужного типа
 
-    //заполняем график считанными данными с помощью нужного читателя нужными цветами
+    //заполняем график считанными данными с помощью нужного читателя
     if (chbox_bw_chart->checkState())
         chart->createChart(gContainer.GetObject<IChartData>()->getData(filePath), 7, black_white_colors);
     else
@@ -151,20 +146,27 @@ void MainWindow::open_directory_slot()
 
 void MainWindow::print_chart_slot()
 {
-    //Печать графика с помощью QPdfWriter(класс для создания pdf файлов)
+    if (chart_is_open){
+        QString saving_path ("");
 
-    //todo: разобраться, исправить если нужно.
+        QFileDialog dialog(this);
+        dialog.setFileMode(QFileDialog::Directory);
+        if (dialog.exec())
+            saving_path = dialog.selectedFiles().first();
 
-    QPdfWriter writer("out.pdf");
+        QPdfWriter* writer = new QPdfWriter (saving_path + "/out.pdf");
 
-    writer.setCreator("Someone");//Указываем создателя документа
-    writer.setPageSize(QPageSize::A4);//Устанавливаем размер страницы
-
-
-    QPainter painter(&writer);
-
-    //chart_view->render(&painter);
-    painter.end();
+        writer->setCreator("Someone");//Указываем создателя документа
+        writer->setPageSize(QPageSize::A4);//Устанавливаем размер страницы
+        QPainter painter(writer);
+        chart_view->render(&painter);
+        painter.end();
+    }
+    else {
+        QMessageBox nowae;
+        nowae.setText("No chart to print");
+        nowae.exec();
+    }
 }
 
 void MainWindow::file_chose_slot(const QItemSelection &selected, const QItemSelection &deselected)
@@ -214,7 +216,7 @@ void MainWindow::file_chose_slot(const QItemSelection &selected, const QItemSele
     }
 
     if (file_format_right && chart_type_right)
-        chart_repaint();//перерисовывем график
+        chart_repaint();    //перерисовывем график
 }
 
 MainWindow::~MainWindow()
