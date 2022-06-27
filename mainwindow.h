@@ -9,25 +9,19 @@
 #include <QSplitter>
 #include <QTableView>
 #include <QFileSystemModel>
-
 #include <QtCharts/QChartView>
 #include <QtCharts/QPieSeries>
 #include <QtCharts/QPieSlice>
 #include <QPainter>
 #include <QPdfWriter>
-
 #include <QGridLayout>
-
 #include <QCheckBox>
 #include <QComboBox>
-
-
 #include <QPdfWriter>
-
 #include <QtSql>
-
 #include <QItemSelectionModel>
 
+#include "graph.h"
 
 //class MainWindow : public QWidget
 class MainWindow : public QWidget
@@ -45,7 +39,7 @@ public:
 
 private:
     QString directory_name;//имя открытой директории
-
+    QString saving_path;
 
     //компановка
     QSplitter *splitter_left; //разделитель
@@ -64,12 +58,10 @@ private:
     QComboBox *combobox_chart_type;
 
     //графики
-    QChartView *chart_view;
-    QChart *chart;
-    QPieSeries *series;
-    QPieSlice *hit_slice;
     QPainter painter;
-
+    Graph* graph;
+    QChartView* view;
+    /*
     //база
     QSqlDatabase dbase;
 
@@ -77,6 +69,7 @@ private:
     QString filePath;
     QTableView *view;
     QSqlTableModel *model;
+    */
 
 };
 #endif // MAINWINDOW_H
