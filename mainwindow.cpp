@@ -1,15 +1,23 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "IOCcontainer.h"
 
-#include <QMessageBox>
-
-
-MainWindow::MainWindow(QWidget *parent)
-    : QWidget(parent)
+MainWindow::MainWindow(QWidget *parent) : QWidget(parent)
 {
     setWindowTitle("Lab_3_Tikhomirov"); // заголовок окна
-    setGeometry(0,0,800,600);
+    setGeometry(0, 0, 1200, 600);
+    int visuable_parts_amount = 7; //количество "видимых частей" графика (остальные суммируются в "Others")
 
+    for (int i = 0; i <= visuable_parts_amount + 1; i++){
+        int r = rand()%250;
+        int g = rand()%250;
+        int b = rand()%250;
+        int bw = (r+g+b)/3;
+        colored_colors.push_back(QColor(r,g,b));
+        black_white_colors.push_back(QColor(bw, bw, bw));
+    }
+
+    chart_is_open = 0;
    /******************************************************** КОМПАНОВКА ********************************************************/
 
     horizontal_layout=new QHBoxLayout(this);
@@ -45,7 +53,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     button_print_chart = new QPushButton ("Print graph");
     chbox_bw_chart = new QCheckBox("B/w graph");
+
     combobox_chart_type = new QComboBox();
+    combobox_chart_type->insertItem(1, QString("Pie chart"));
+    combobox_chart_type->insertItem(2, QString("Bar chart"));
 
     /******************************************************** РАЗМЕЩЕНИЕ ********************************************************/
 
@@ -71,7 +82,6 @@ void MainWindow::open_directory_slot()
     dialog.setFileMode(QFileDialog::Directory);
     if (dialog.exec())
         directory_name = dialog.selectedFiles().first();;
-
    table_view->setRootIndex(table_model->setRootPath(directory_name));
 }
 
@@ -101,30 +111,45 @@ void MainWindow::print_chart_slot()
 
 }
 
-
 void MainWindow::file_chose_slot(const QItemSelection &selected, const QItemSelection &deselected)
 {
     Q_UNUSED(deselected);
+    bool file_format_right = 0;
+    bool chart_type_right = 0;
+
+    //проверяем тип:
+    QString chart_type (combobox_chart_type->currentText());
+     if (chart_type == "Pie chart"){
+         gContainer.RegisterInstance<IChart, MyPieChart>();
+         chart_type_right = 1;
+     }
+     else if (chart_type == "Bar chart"){
+         gContainer.RegisterInstance<IChart, MyBarChart>();
+         chart_type_right = 1;
+     }
+     else {
+         QMessageBox uct;
+         uct.setText("Unknown chart type: " + chart_type);
+         uct.exec();
+      }
 
     //получаем путь:
-    QModelIndexList indexs =  selected.indexes();
-    filePath = "";
+    QModelIndexList indexs = selected.indexes();
     if (indexs.count() >= 1) {
         QModelIndex ix =  indexs.constFirst();
         filePath = table_model->filePath(ix);
     }
 
-    //связываемся с датабазой:
-
-    dbase = QSqlDatabase::addDatabase("QSQLITE"); //соединение по умолчанию (неименованое)
-    dbase.setDatabaseName(filePath);
-
-    if (!dbase.open()) {//открываем, проверяем на открытие
-        QMessageBox msg;
-        msg.setText("Cant open database " + filePath);
-        msg.exec();
+    //связываем интерфейс получения данных с конкретным читателем:
+    if (filePath.endsWith(".sqlite")){
+        gContainer.RegisterInstance<IChartData, ChartDataSqlite>();
+        file_format_right = 1;
     }
 
+    else if (filePath.endsWith(".json")){
+        gContainer.RegisterInstance<IChartData, ChartDataJson>();
+        file_format_right = 1;
+    }
     else {
         model = new QSqlTableModel;
         model->database() = dbase;
