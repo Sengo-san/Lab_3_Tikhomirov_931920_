@@ -9,14 +9,13 @@ public:
     virtual QList <QColor>* getColors(int colors_count) = 0;
 };
 
-class ColoredGenerator : IGeneratorColors
+class ColoredGenerator : public IGeneratorColors
 {
 public:
     QList <QColor>* getColors(int colors_count);
 };
 
-
-class BWGenerator : IGeneratorColors
+class BWGenerator : public IGeneratorColors
 {
 public:
     QList <QColor>* getColors(int colors_count);

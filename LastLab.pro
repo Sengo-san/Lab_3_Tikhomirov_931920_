@@ -18,7 +18,6 @@ SOURCES += \
 HEADERS += \
     DataElement.h \
     IOCContainer.h \
-    datagraph.h \
     graph.h \
     graphgenerator.h \
     igeneratorchart.h \

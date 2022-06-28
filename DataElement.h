@@ -3,7 +3,7 @@
 
 #include <QString>
 
-struct DataElement
+struct DataElement //элемент данных
 {
     QString header;
     float val;

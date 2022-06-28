@@ -36,7 +36,6 @@ DataGraph* SqliteScanner::getData(QString source_path)
 DataGraph* JsonScanner::getData(QString source_path)
 {
     DataGraph* data = new DataGraph ();
-
        QString val;
        QFile file;
        file.setFileName(source_path);
@@ -49,7 +48,6 @@ DataGraph* JsonScanner::getData(QString source_path)
 
 
            QStringList names (jsonObject.keys());
-           bool unreaded = 0;
 
            foreach (QJsonValueRef x, jsonObject){
                if (x.isDouble()) {//если объект НЕ переменная [дата, значение] - пропускаем

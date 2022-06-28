@@ -2,15 +2,12 @@
 #define GRAPHGENERATOR_H
 
 #include <QString>
-#include <graph.h>
-#include <datagraph.h>
 #include <QChartView>
-
 #include "IOCContainer.h"
 #include "igeneratorchart.h"
 #include "igeneratorcolors.h"
-
-
+#include "graph.h"
+#include "iscanner.h"
 
 class GraphGenerator
 {
@@ -19,7 +16,7 @@ public:
      {
          Graph* graph = new Graph;
 
-         if (data->isEmpty()) {
+         if (data->isEmpty()){//проверка пометки в данных, что они собраны без ошибок
              return graph;
          }
 
@@ -28,23 +25,28 @@ public:
              gContainer.RegisterInstance<IGeneratorColors, ColoredGenerator>();
          else if (coloring.toLower() == "bw")
              gContainer.RegisterInstance<IGeneratorColors, BWGenerator>();
-         else
+         else {
              return graph;
+         }
 
          //настраиваем фабрики на тип графика
          if (graphType.toLower() == "barchart")
-             gContainer.RegisterInstance<IGeneratorChartView, PieChartGenerator>();
-
-         else if (graphType.toLower() == "piechart")
-             gContainer.RegisterInstance<IGeneratorChartView, PieChartGenerator>();
+             //gContainer.RegisterFactory <IGeneratorChartView, PieChartGenerator>();
+             gContainer.RegisterInstance<IGeneratorChartView, BarChartGenerator>();
+         else if (graphType.toLower() == "piechart") {
+             //gContainer.RegisterFactory <IGeneratorChartView, BarChartGenerator>();
+             gContainer.RegisterInstance<IGeneratorChartView,PieChartGenerator>();
+         }
          else
              return graph;
 
-         //создаем установленное представление, раскрашеное установленным набором цветов
-         QChartView  *view = gContainer.GetObject<IGeneratorChartView>()
-                 ->getChart(data->getData(), gContainer.GetObject<IGeneratorColors>()->getColors(data->getElementsCount()));
+         //создаем установленный тип представления, раскрашенныйе установленным набором цветов
+         QChartView  *view = gContainer.GetObject<IGeneratorChartView>()->getChart(
+                     data->getData(),
+                     gContainer.GetObject<IGeneratorColors>()->getColors(data->getElementsCount())
+                     );
 
-           graph->setGraphView(view); //ставим конкретное визуальное представление
+            graph->setGraphView(view); //селим созданное визуальное представление в график визуальное представление
            return graph;
      };
 };
