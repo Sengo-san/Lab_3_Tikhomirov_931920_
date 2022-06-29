@@ -62,6 +62,7 @@ private:
     QComboBox *combobox_chart_type;
 
     //графики
+    QChart *empt = new QChart; //пустой график, на случай выбора нечитаемого файла
     QPainter painter;
     Graph* graph;
     QChartView* view;

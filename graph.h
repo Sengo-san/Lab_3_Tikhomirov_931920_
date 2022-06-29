@@ -4,16 +4,14 @@
 #include <QChart>
 #include <QChartView>
 
-#include <QPdfWriter>
-
 class Graph
 {
 private:
-    QChartView* view;
+    QChart* chart;
 public:
-    void setGraphView (QChartView* view_) {view = view_;};
-    QChart* getChart () {return view->chart() ;};
-    QChartView* getChartView() {return view;};
+    QChart* getChart () {return chart;};
+    void setChart (QChart* chart_) {chart = chart_;};
 };
+
 
 #endif // GRAPH_H

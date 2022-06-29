@@ -24,7 +24,7 @@ DataGraph* SqliteScanner::getData(QString source_path)
 */
     if (dbase.open()) {
         //собираем данные из базы в data:
-        QSqlQuery query ("SELECT * FROM " + dbase.tables().takeFirst()); //запрос на первую таблицу базы
+        QSqlQuery query ("SELECT * FROM " + dbase.tables().takeFirst() + " LIMIT 0,10"); //запрос на первую таблицу базы, для графика возьмем только первые 10 элементов
         while (query.next()) {
             data->push (query.value(0).toString() , query.value(1).toFloat()); //складываем элемент в данные
             }
@@ -46,15 +46,18 @@ DataGraph* JsonScanner::getData(QString source_path)
            QJsonDocument doc = QJsonDocument::fromJson(val.toUtf8());
            QJsonObject jsonObject = doc.object();
 
-
-           QStringList names (jsonObject.keys());
-
+           QStringList keys (jsonObject.keys());
+           //QList<float> vals;
+           //QList<DataElement> scandata;//необработанные данные
+           int i = 0;
            foreach (QJsonValueRef x, jsonObject){
                if (x.isDouble()) {//если объект НЕ переменная [дата, значение] - пропускаем
-                   data->push(names.takeFirst(), x.toDouble());
+                   data->push(keys.at(i), x.toDouble());
+                   //data->push(keys.at(i), x.toDouble());
                }
+               i++;
+               if (i > 9) break; //для графика возьмем только первые 10 элементов
            }
-
            data->dataGot();
        }
 

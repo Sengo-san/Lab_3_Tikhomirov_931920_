@@ -3,9 +3,11 @@
 
 #include <QMessageBox>
 //#include "ichart.h"
-#include "graphgenerator.h"
+
+#include "GraphGenerator.h"
 #include "IOCContainer.h"
-#include "iscanner.h"
+#include "IScanner.h"
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QWidget(parent)
@@ -53,6 +55,7 @@ MainWindow::MainWindow(QWidget *parent)
     combobox_chart_type->insertItem(2, QString("Bar chart"));
 
     view = new QChartView;
+    view->setRenderHint(QPainter::Antialiasing);
     /******************************************************** РАЗМЕЩЕНИЕ ********************************************************/
 
     splitter_left->addWidget(table_view);
@@ -120,10 +123,14 @@ void MainWindow::chart_repaint (QString path, QString type_in_combobox, bool bw)
             graph = graph_generator.getGraph( //создаем график с помощью фабрики
                                               gContainer.GetObject<IScanner>()->getData(open_file_name), //создаем и передаем данные
                                               chart_type, coloring); //имя расцветки, имя типа графика
+            //view->setChart(graph->getChart());
             view->setChart(graph->getChart());
             chart_is_open = 1;
         }
     }
+
+    if (!chart_is_open)
+        view->setChart(empt);//заменяем отображаемый график пустым
 }
 
 void MainWindow::recoloring_chart_slot ()
@@ -152,33 +159,26 @@ void MainWindow::open_directory_slot()
 void MainWindow::print_chart_slot()
 {
     if (chart_is_open){
+        //получаем путь сохранения
         QString saving_path ("");
         QFileDialog dialog(this);
         dialog.setFileMode(QFileDialog::Directory);
-        if (dialog.exec())
+        if (dialog.exec()){
             saving_path = dialog.selectedFiles().first();
-        if (saving_path != "")
-            //graph->printToPdf(saving_path);
-        {
-            //QPdfWriter* writer = new QPdfWriter (saving_path + "/out.pdf");
-            QPdfWriter writer (saving_path + "/out.pdf");
-            writer.setCreator("Someone");//Указываем создателя документа
-            writer.setPageSize(QPageSize::A4);//Устанавливаем размер страницы
-            QPainter painter(&writer);
+            //печатаем
+            QPdfWriter* writer = new QPdfWriter (saving_path + "/out.pdf");
+            writer->setCreator("Someone");//Указываем создателя документа
+            writer->setPageSize(QPageSize::A4);//Устанавливаем размер страницы
+            QPainter painter(writer);
             view->render(&painter);
             painter.end();
         }
-        else {
-            QMessageBox nowae;
-            nowae.setText("Cant open saving way");
-            nowae.exec();
-        }
-        }
-        else {
-            QMessageBox nowae;
-            nowae.setText("No chart to print");
-            nowae.exec();
-        }
+    }
+    else {
+        QMessageBox nochart;
+        nochart.setText("No chart to print");
+        nochart.exec();
+    }
 }
 
 void MainWindow::file_chose_slot(const QItemSelection &selected, const QItemSelection &deselected)
@@ -199,8 +199,9 @@ void MainWindow::file_chose_slot(const QItemSelection &selected, const QItemSele
                       chbox_bw_chart->checkState());
     else {
         QMessageBox path_err;
-        path_err.setText("Can`t find file");
+        path_err.setText("Can`t see file");
         path_err.exec();
+        view->setChart(empt);
     }
 }
 

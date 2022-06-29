@@ -1,4 +1,4 @@
-#include "igeneratorcolors.h"
+#include "IGeneratorColors.h"
 
 QList <QColor>* ColoredGenerator::getColors(int colors_count)
 {

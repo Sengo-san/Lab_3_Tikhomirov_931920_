@@ -5,6 +5,7 @@
 
 struct DataElement //элемент данных
 {
+public:
     QString header;
     float val;
     DataElement (QString header_, float val_)

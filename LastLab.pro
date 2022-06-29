@@ -10,19 +10,20 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    igeneratorcolors.cpp \
-    iscanner.cpp \
+    IGeneratorColors.cpp \
+    IScanner.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
     DataElement.h \
+    DataGraph.h \
     IOCContainer.h \
-    graph.h \
-    graphgenerator.h \
-    igeneratorchart.h \
-    igeneratorcolors.h \
-    iscanner.h \
+    IGeneratorQChart.h \
+    Graph.h \
+    GraphGenerator.h \
+    IGeneratorColors.h \
+    IScanner.h \
     mainwindow.h
 
 FORMS += \

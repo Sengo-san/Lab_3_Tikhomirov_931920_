@@ -1,4 +1,4 @@
-#include "ichartdata.h"
+#include "IchartData.h"
 #include <QMessageBox>
 
 bool operator== (const DataElement x, const DataElement y) //для поиска по заголовку
